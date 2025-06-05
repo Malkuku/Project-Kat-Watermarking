@@ -19,6 +19,8 @@ public class DigitalWatermarking {
         m, //mp4视频
         n, //mp3音频
         p, //png图片
+        w, //wav音频
+        t,  //txt文本
     }
     public static MarkingType fromByte(byte b) {
         return switch (b) {
@@ -26,6 +28,8 @@ public class DigitalWatermarking {
             case 'm' -> MarkingType.m;
             case 'n' -> MarkingType.n;
             case 'p' -> MarkingType.p;
+            case 'w' -> MarkingType.w;
+            case 't' -> MarkingType.t;
             default -> throw new IllegalArgumentException("未知类型: " + (char) b);
         };
     }
@@ -73,6 +77,8 @@ public class DigitalWatermarking {
             case m:
             case n:
             case p:
+            case w:
+            case t:
                 if(expectedType == byte[].class)
                     return expectedType.cast(secretData);
                 break;
@@ -120,6 +126,10 @@ public class DigitalWatermarking {
                 type = MarkingType.n.toString().getBytes();
             } else if (file.getName().endsWith(".mp4")) {
                 type = MarkingType.m.toString().getBytes();
+            } else if (file.getName().endsWith(".wav")) {
+                type = MarkingType.w.toString().getBytes();
+            } else if(file.getName().endsWith(".txt")){
+                type = MarkingType.t.toString().getBytes();
             } else {
                 throw new RuntimeException("不支持的文件类型");
             }

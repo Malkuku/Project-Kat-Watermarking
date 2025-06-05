@@ -15,5 +15,5 @@ public interface WatermarkService {
     byte[] generateFileWatermarkToPng(MultipartFile imageFile, MultipartFile file) throws IOException;
 
     //   提取文件水印
-    byte[] extractFileWatermarkFromPng(MultipartFile imageFile, String fileType) throws IOException;
+    byte[] extractFileWatermarkFromPng(MultipartFile imageFile) throws IOException;
 }

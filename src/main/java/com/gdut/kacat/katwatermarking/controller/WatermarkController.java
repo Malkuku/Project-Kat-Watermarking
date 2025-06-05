@@ -20,13 +20,12 @@ public class WatermarkController {
     // 提取文件水印
     @PostMapping("/extract/png/file")
     public Result extractFileWatermarkFromPng(
-            @RequestParam("imageFile") MultipartFile imageFile,
-            @RequestParam("fileType") String fileType
+            @RequestParam("imageFile") MultipartFile imageFile
     ) throws IOException {
         if (!"image/png".equals(imageFile.getContentType())) {
             return Result.error("文件格式错误：非png格式");
         }
-        byte[] bytes = watermarkService.extractFileWatermarkFromPng(imageFile,fileType);
+        byte[] bytes = watermarkService.extractFileWatermarkFromPng(imageFile);
         return Result.success(bytes);
     }
 

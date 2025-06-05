@@ -77,17 +77,11 @@ public class WatermarkServiceImpl implements WatermarkService {
     }
 
     @Override
-    public byte[] extractFileWatermarkFromPng(MultipartFile imageFile, String fileType) throws IOException {
+    public byte[] extractFileWatermarkFromPng(MultipartFile imageFile) throws IOException {
         // 创建临时文件
         File tempFile = File.createTempFile("upload-", ".png");
         imageFile.transferTo(tempFile); // 保存到临时文件
 
-        //检查文件类型（png/mp3/mp4）
-        if(!Objects.equals(fileType, "png")
-                && !Objects.equals(fileType, "mp3")
-                && !Objects.equals(fileType, "mp4")){
-            throw new RuntimeException("不支持的文件类型");
-        }
         byte[] bytes = DigitalWatermarking.extractLSBImage(tempFile, byte[].class);
 
         // 处理完成后删除临时文件
