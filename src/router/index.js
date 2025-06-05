@@ -1,7 +1,9 @@
 import {createRouter, createWebHistory} from 'vue-router'
 import HomeView from '@/components/home/home.vue'
-import ExtractImageView from '@/components/extractImage/extractImage.vue'
-import GenerateImageView from '@/components/generateImage/generateImage.vue'
+import ExtractTextView from '@/components/extractImage/text.vue'
+import GenerateTextView from '@/components/generateImage/text.vue'
+import ExtractFileView from '@/components/extractImage/file.vue'
+import GenerateFileView from '@/components/generateImage/file.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,8 +13,10 @@ const router = createRouter({
             name: "home",
             component: HomeView,
             children:[
-                {path: '/watermark/generate/png',name:"generateImage",component:GenerateImageView},
-                {path: '/watermark/extract/png',name:"extractImage",component:ExtractImageView}
+                {path: '/watermark/generate/png/text',name:"generateImage",component:GenerateTextView},
+                {path: '/watermark/extract/png/text',name:"extractImage",component:ExtractTextView},
+                {path: '/watermark/generate/png/file',name:"generateFile",component:GenerateFileView},
+                {path: '/watermark/extract/png/file',name:"extractFile",component:ExtractFileView},
             ]
         }
     ]

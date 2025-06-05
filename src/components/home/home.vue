@@ -19,14 +19,31 @@ import router from "@/router/index.js";
               text-color="#fff"
               active-text-color="#ffd04b"
           >
-            <el-menu-item index="/watermark/generate/png">
-              <el-icon><document /></el-icon>
-              <template #title>图片处理</template>
-            </el-menu-item>
-            <el-menu-item index="/watermark/extract/png">
-              <el-icon><document /></el-icon>
-              <template #title>图片解析</template>
-            </el-menu-item>
+            <!-- 图片处理-->
+            <el-sub-menu>
+              <template #title><el-icon><document /></el-icon>图片处理</template>
+              <el-menu-item index="/watermark/generate/png/text">
+                <el-icon><document /></el-icon>
+                <template #title>文本水印</template>
+              </el-menu-item>
+              <el-menu-item index="/watermark/generate/png/file">
+                <el-icon><document /></el-icon>
+                <template #title>文件水印</template>
+              </el-menu-item>
+            </el-sub-menu>
+            <!-- 图片解析-->
+            <el-sub-menu >
+              <template #title><el-icon><document /></el-icon>图片解析</template>
+              <el-menu-item index="/watermark/extract/png/text">
+                <el-icon><document /></el-icon>
+                <template #title>文本水印</template>
+              </el-menu-item>
+              <el-menu-item index="/watermark/extract/png/file">
+                <el-icon><document /></el-icon>
+                <template #title>文件水印</template>
+              </el-menu-item>
+            </el-sub-menu>
+            <!-- 设置 -->
             <el-menu-item index="3">
               <el-icon><setting /></el-icon>
               <template #title>设置</template>
