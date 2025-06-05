@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 public class DigitalWatermarking {
     static final Charset CHARSET = StandardCharsets.UTF_8;
@@ -33,10 +34,17 @@ public class DigitalWatermarking {
         //生成水印头 长度+类型+数据
         byte[] secretData = generateHeader(text);
         BufferedImage image = ImageIO.read(imageFile);
+        checkSuitableSize(secretData, image);
+        embedLSBImage(image, secretData);
+        return image;
+    }
+
+    public static BufferedImage embedLSBImage (File imageFile, File secretFile) throws IOException {
+        //生成水印头 长度+类型+数据
+        byte[] secretData = generateHeader(secretFile);
+        BufferedImage image = ImageIO.read(imageFile);
         //检查容量
-        if (8L*secretData.length > 3L*image.getWidth() * image.getHeight()) {
-            throw new RuntimeException("数据过大,无法注入图片");
-        }
+        checkSuitableSize(secretData, image);
         embedLSBImage(image, secretData);
         return image;
     }
@@ -63,13 +71,10 @@ public class DigitalWatermarking {
                     return expectedType.cast(new String(secretData, CHARSET));
                 else throw new RuntimeException("类型不匹配");
             case m:
-                //TODO 处理mp4
-                break;
             case n:
-                //TODO 处理mp3
-                break;
             case p:
-                //TODO 处理png
+                if(expectedType == byte[].class)
+                    return expectedType.cast(secretData);
                 break;
             default:
                 throw new RuntimeException("类型读取有误");
@@ -101,34 +106,47 @@ public class DigitalWatermarking {
 
 
 
-    private static byte[] generateHeader(Object obj) {
-        byte[] type = new byte[0];
-        if(obj instanceof String){
+    private static byte[] generateHeader(Object obj) throws IOException {
+        byte[] type;
+        byte[] data;
+
+        if (obj instanceof String) {
             type = MarkingType.s.toString().getBytes();
-        }
-        else if(obj instanceof File){
-            if(((File) obj).getName().endsWith(".png")){
+            data = ((String) obj).getBytes(CHARSET);
+        } else if (obj instanceof File file) {
+            if (file.getName().endsWith(".png")) {
                 type = MarkingType.p.toString().getBytes();
-            }else if(((File) obj).getName().endsWith(".mp3")){
+            } else if (file.getName().endsWith(".mp3")) {
                 type = MarkingType.n.toString().getBytes();
-            }else if(((File) obj).getName().endsWith(".mp4")){
+            } else if (file.getName().endsWith(".mp4")) {
                 type = MarkingType.m.toString().getBytes();
+            } else {
+                throw new RuntimeException("不支持的文件类型");
             }
-        }else{
+            // 读取文件内容为字节数组
+            data = Files.readAllBytes(file.toPath());
+        } else {
             throw new RuntimeException("不支持的数据类型");
         }
 
-        byte[] data = obj.toString().getBytes(CHARSET);
         int length = data.length;
         byte[] header = new byte[4];
         header[0] = (byte) (length >>> 24);
         header[1] = (byte) (length >>> 16);
         header[2] = (byte) (length >>> 8);
         header[3] = (byte) (length);
+
         return ByteBuffer.allocate(header.length + type.length + data.length)
                 .put(header)
                 .put(type)
                 .put(data)
                 .array();
+    }
+
+    private static void checkSuitableSize(byte[] secretData, BufferedImage image) {
+        //检查容量
+        if (8L* secretData.length > 3L* image.getWidth() * image.getHeight()) {
+            throw new RuntimeException("数据过大,无法注入图片");
+        }
     }
 }
