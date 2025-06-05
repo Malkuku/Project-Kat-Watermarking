@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import {generatePngTextApi} from "@/api/watermark.js";
 import {ElNotification} from 'element-plus';
 import { UploadFilled, Download, Right } from '@element-plus/icons-vue'
@@ -12,11 +12,38 @@ const generateForm = ref({
 const generateImagePreview = ref('');
 const generatedWatermarkImage = ref('');
 const isLoading = ref(false);
+const imageDimensions = ref({ width: 0, height: 0 });
+const currentBytes = ref(0);
+
+// 计算最大可容纳字节数
+const maxBytes = computed(() => {
+  if (imageDimensions.value.width && imageDimensions.value.height) {
+    return Math.floor((imageDimensions.value.width * imageDimensions.value.height * 3) / 8);
+  }
+  return 0;
+});
+
+// 监听文本变化，实时计算字节数
+watch(() => generateForm.value.text, (newText) => {
+  currentBytes.value = new TextEncoder().encode(newText).length;
+});
 
 // 处理上传
 const handleGenerateImageUpload = (imageFile) => {
   generateForm.value.imageFile = imageFile.raw;
   generateImagePreview.value = URL.createObjectURL(imageFile.raw);
+  currentBytes.value = new TextEncoder().encode(generateForm.value.text).length;
+
+  // 获取图片尺寸
+  const img = new Image();
+  img.onload = () => {
+    imageDimensions.value = {
+      width: img.width,
+      height: img.height
+    };
+  };
+  img.src = URL.createObjectURL(imageFile.raw);
+
   return false;
 }
 
@@ -29,6 +56,12 @@ const generateWatermark = async () => {
 
   if (!generateForm.value.text) {
     ElNotification.warning('请输入水印文本');
+    return;
+  }
+
+  // 检查文本是否超过最大容量
+  if (currentBytes.value > maxBytes.value) {
+    ElNotification.warning(`水印文本过大 (${currentBytes.value} bytes)。当前图片最多可容纳 ${maxBytes.value} bytes`);
     return;
   }
 
@@ -74,6 +107,8 @@ const clearGenerateForm = () => {
   generateForm.value = { imageFile: null, text: '' };
   generateImagePreview.value = '';
   generatedWatermarkImage.value = '';
+  imageDimensions.value = { width: 0, height: 0 };
+  currentBytes.value = 0;
 };
 </script>
 
@@ -99,7 +134,7 @@ const clearGenerateForm = () => {
             </div>
           </div>
           <div v-else class="image-preview">
-            <img :src="generateImagePreview" class="preview-image" />
+            <img :src="generateImagePreview" class="preview-image"  alt=""/>
           </div>
         </el-upload>
       </div>
@@ -110,7 +145,15 @@ const clearGenerateForm = () => {
             placeholder="输入水印文本内容"
             class="watermark-input"
             clearable
+            show-word-limit
         />
+        <div class="byte-info">
+          <span v-if="maxBytes > 0">
+            已使用: {{ currentBytes }} / {{ maxBytes }} bytes
+            <span v-if="currentBytes > maxBytes" class="warning-text">(超出容量限制!)</span>
+          </span>
+          <span v-else>请先上传图片</span>
+        </div>
 
         <div class="action-buttons">
           <el-button
@@ -118,6 +161,7 @@ const clearGenerateForm = () => {
               @click="generateWatermark"
               :loading="isLoading"
               class="generate-button"
+              :disabled="currentBytes > maxBytes || !generateForm.text"
           >
             {{ isLoading ? '生成中...' : '生成水印' }}
           </el-button>
@@ -184,6 +228,7 @@ h3 {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
 }
 
 .upload-empty {
@@ -211,6 +256,11 @@ h3 {
   object-fit: contain;
 }
 
+.warning-text {
+  color: var(--el-color-danger);
+  font-weight: bold;
+}
+
 .upload-icon {
   font-size: 48px;
   color: var(--el-color-primary);
@@ -234,6 +284,13 @@ h3 {
 
 .watermark-input {
   width: 100%;
+}
+
+.byte-info {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  margin-top: 5px;
+  text-align: right;
 }
 
 .action-buttons {

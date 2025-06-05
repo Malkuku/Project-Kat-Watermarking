@@ -77,7 +77,7 @@ const clearExtractForm = () => {
             </div>
           </div>
           <div v-else class="image-preview">
-            <img :src="extractImagePreview" class="preview-image" />
+            <img :src="extractImagePreview" class="preview-image"  alt=""/>
           </div>
         </el-upload>
       </div>
