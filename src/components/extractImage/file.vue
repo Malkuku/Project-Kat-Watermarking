@@ -1,102 +1,97 @@
 <script setup>
-import {ref} from 'vue'
-import {extractPngFileApi} from "@/api/watermark.js"
-import {ElNotification, ElMessageBox} from 'element-plus'
+import { ref } from 'vue'
+import { extractPngFileApi } from "@/api/watermark.js"
+import { ElNotification } from 'element-plus'
 import { UploadFilled, Right } from '@element-plus/icons-vue'
+import { fileTypeFromBlob } from 'file-type' // 引入文件类型检测库
 
 // 解析文件水印相关
 const extractForm = ref({
   imageFile: null,
-  fileType: 'png' // 默认选择PNG格式
-});
-const extractImagePreview = ref('');
-const extractedFile = ref(null);
-const isLoading = ref(false);
-const fileTypes = ['png', 'mp3', 'mp4']; // 支持的文件类型
+})
+const extractImagePreview = ref('')
+const extractedFile = ref(null)
+const isLoading = ref(false)
 
 // 处理解析文件水印的图片上传
 const handleExtractImageUpload = (file) => {
-  // 检查文件类型是否为PNG
   if (file.raw.type !== 'image/png') {
-    ElNotification.error('请上传PNG格式的图片');
-    return false;
+    ElNotification.error('请上传PNG格式的图片')
+    return false
   }
 
-  extractForm.value.imageFile = file.raw;
-  extractImagePreview.value = URL.createObjectURL(file.raw);
-  extractedFile.value = null; // 清空之前解析的文件
-  return false; // 阻止自动上传
-};
+  extractForm.value.imageFile = file.raw
+  extractImagePreview.value = URL.createObjectURL(file.raw)
+  extractedFile.value = null // 清空之前解析的文件
+  return false // 阻止自动上传
+}
 
 // 解析文件水印
 const extractFileWatermark = async () => {
   if (!extractForm.value.imageFile) {
-    ElNotification.warning('请上传含有水印的PNG图片');
-    return;
+    ElNotification.warning('请上传含有水印的PNG图片')
+    return
   }
 
-  if (!extractForm.value.fileType) {
-    ElNotification.warning('请选择要提取的文件类型');
-    return;
-  }
+  isLoading.value = true
 
-  isLoading.value = true;
-
-  const formData = new FormData();
-  formData.append('imageFile', extractForm.value.imageFile);
-  formData.append('fileType', extractForm.value.fileType);
+  const formData = new FormData()
+  formData.append('imageFile', extractForm.value.imageFile)
 
   try {
-    const { data } = await extractPngFileApi(formData);
+    const { data } = await extractPngFileApi(formData)
     if (data.code) {
-      // 处理返回的base64文件数据
-      const fileData = data.data;
-      const byteCharacters = atob(fileData);
-      const byteNumbers = new Array(byteCharacters.length);
+      const fileData = data.data
+      const byteCharacters = atob(fileData)
+      const byteArray = new Uint8Array(byteCharacters.length)
       for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
+        byteArray[i] = byteCharacters.charCodeAt(i)
       }
-      const byteArray = new Uint8Array(byteNumbers);
 
-      // 创建Blob对象
-      const blob = new Blob([byteArray], {type: `application/${extractForm.value.fileType}`});
+      // 创建 Blob 并检测文件类型
+      const blob = new Blob([byteArray])
+      const detectedType = await fileTypeFromBlob(blob)
+
+      // 使用检测到的类型（如果检测不到，默认用 'bin'）
+      const fileExt = detectedType?.ext || 'bin'
+      const mimeType = detectedType?.mime || 'application/octet-stream'
 
       // 创建文件对象
-      extractedFile.value = new File([blob], `extracted.${extractForm.value.fileType}`, {
-        type: blob.type
-      });
+      extractedFile.value = new File([blob], `extracted.${fileExt}`, {
+        type: mimeType,
+      })
 
-      ElNotification.success('文件水印解析成功');
+      ElNotification.success('文件水印解析成功')
     } else {
-      ElNotification.error(data.msg || '文件水印解析失败');
+      ElNotification.error(data.msg || '文件水印解析失败')
     }
   } catch (error) {
-    ElNotification.error('文件水印解析失败: ' + (error.response?.data?.msg || error.message));
+    ElNotification.error('文件水印解析失败: ' + (error.response?.data?.msg || error.message))
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
-};
+}
 
 // 下载提取的文件
 const downloadExtractedFile = () => {
-  if (!extractedFile.value) return;
+  if (!extractedFile.value) return
 
-  const url = URL.createObjectURL(extractedFile.value);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = extractedFile.value.name;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-};
+  const url = URL.createObjectURL(extractedFile.value)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = extractedFile.value.name
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
 
 // 清空解析表单
 const clearExtractForm = () => {
-  extractForm.value = { imageFile: null, fileType: 'png' };
-  extractImagePreview.value = '';
-  extractedFile.value = null;
-};
+  extractForm.value = { imageFile: null }
+  extractImagePreview.value = ''
+  extractedFile.value = null
+}
 </script>
 
 <template>
@@ -121,24 +116,12 @@ const clearExtractForm = () => {
             </div>
           </div>
           <div v-else class="image-preview">
-            <img :src="extractImagePreview" class="preview-image" />
+            <img :src="extractImagePreview" class="preview-image" alt="" />
           </div>
         </el-upload>
       </div>
 
       <div class="control-section">
-        <div class="file-type-selector">
-          <span class="selector-label">提取文件类型:</span>
-          <el-select v-model="extractForm.fileType" placeholder="请选择文件类型">
-            <el-option
-                v-for="type in fileTypes"
-                :key="type"
-                :label="type"
-                :value="type"
-            />
-          </el-select>
-        </div>
-
         <div class="action-buttons">
           <el-button
               type="primary"
@@ -178,7 +161,7 @@ const clearExtractForm = () => {
         </div>
         <div v-else class="result-placeholder">
           <p>文件水印解析结果将显示在这里</p>
-          <p class="placeholder-tip">请先上传PNG图片并选择要提取的文件类型</p>
+          <p class="placeholder-tip">请先上传PNG图片</p>
         </div>
       </div>
     </div>
@@ -262,18 +245,6 @@ h3 {
   margin-top: 20px;
 }
 
-.file-type-selector {
-  display: flex;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.selector-label {
-  margin-right: 10px;
-  font-size: 14px;
-  color: var(--el-text-color-regular);
-}
-
 .action-buttons {
   display: flex;
   gap: 10px;
@@ -355,15 +326,6 @@ h3 {
 
   .upload-box, .result-box {
     height: 250px;
-  }
-
-  .file-type-selector {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .selector-label {
-    margin-bottom: 5px;
   }
 }
 </style>
