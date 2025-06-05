@@ -160,11 +160,11 @@ const clearGenerateForm = () => {
             :auto-upload="false"
             :on-change="handleEmbedFileUpload"
             :show-file-list="false"
-            accept=".mp3,.mp4,.png"
+            accept=".mp3,.mp4,.png,.txt,.wav"
         >
           <el-button type="primary">
             <el-icon class="el-icon--left"><upload-filled /></el-icon>
-            选择文件(MP3/MP4/PNG)
+            选择文件(MP3/MP4/PNG/TXT/WAV)
           </el-button>
         </el-upload>
         <div v-if="embedFilePreview" class="file-preview">

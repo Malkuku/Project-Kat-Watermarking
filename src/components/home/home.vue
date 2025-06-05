@@ -81,7 +81,7 @@ import {ElNotification} from "element-plus";
       <!-- 底栏固定 -->
       <el-footer class="el-footer">
         <div class="footer-content">
-          © 2023 Kat数字水印处理工具 - 作者: KaCat
+          © 2026 Kat数字水印处理工具 - 作者: Malkuku
           <a href="https://github.com/Malkuku" target="_blank">GitHub</a>
         </div>
       </el-footer>
