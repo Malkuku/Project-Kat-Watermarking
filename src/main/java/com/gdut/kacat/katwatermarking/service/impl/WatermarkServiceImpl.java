@@ -50,7 +50,7 @@ public class WatermarkServiceImpl implements WatermarkService {
         File tempFile = File.createTempFile("upload-", ".png");
         imageFile.transferTo(tempFile); // 保存到临时文件
 
-        //检查文件类型（png/mp3/mp4）
+        //检查文件类型（png/mp3/mp4/wav/txt）
         File tempScFile;
         if(Objects.equals(file.getContentType(), "image/png")){
             tempScFile  = File.createTempFile("upload-", ".png");
@@ -58,7 +58,13 @@ public class WatermarkServiceImpl implements WatermarkService {
             tempScFile  = File.createTempFile("upload-", ".mp3");
         }else if(Objects.equals(file.getContentType(), "video/mp4")){
             tempScFile = File.createTempFile("upload-", ".mp4");
-        }else{
+        }
+        else if(Objects.equals(file.getContentType(), "audio/wav")){
+            tempScFile = File.createTempFile("upload-", ".wav");
+        }
+        else if(Objects.equals(file.getContentType(), "text/plain")){
+            tempScFile = File.createTempFile("upload-", ".txt");
+        } else{
             throw new RuntimeException("不支持的文件类型");
         }
         file.transferTo(tempScFile);
