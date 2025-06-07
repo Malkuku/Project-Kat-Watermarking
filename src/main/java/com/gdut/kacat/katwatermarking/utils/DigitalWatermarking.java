@@ -22,6 +22,7 @@ public class DigitalWatermarking {
         w, //wav音频
         t,  //txt文本
     }
+    // 从字节获取水印类型
     public static MarkingType fromByte(byte b) {
         return switch (b) {
             case 's' -> MarkingType.s;
@@ -34,6 +35,7 @@ public class DigitalWatermarking {
         };
     }
 
+    //将String嵌入到图像的LSB中
     public static BufferedImage embedLSBImage (File imageFile, String text) throws IOException {
         //生成水印头 长度+类型+数据
         byte[] secretData = generateHeader(text);
@@ -43,6 +45,7 @@ public class DigitalWatermarking {
         return image;
     }
 
+    //从文件嵌入水印
     public static BufferedImage embedLSBImage (File imageFile, File secretFile) throws IOException {
         //生成水印头 长度+类型+数据
         byte[] secretData = generateHeader(secretFile);
@@ -53,6 +56,7 @@ public class DigitalWatermarking {
         return image;
     }
 
+    //从图像中提取水印
     public static <T> T extractLSBImage(File imageFile, Class<T> expectedType) throws IOException {
         BufferedImage image = ImageIO.read(imageFile);
         BitStream bitStream = new BitStream(image);
@@ -88,14 +92,15 @@ public class DigitalWatermarking {
         return null;
     }
 
+    //将bit数据嵌入
     private static void embedLSBImage (BufferedImage image, byte[] secretData){
-        int bitIndex = 0;
-        int dataIndex = 0;
+        int bitIndex = 0; // 单byte的bit索引
+        int dataIndex = 0; // byte数组索引
         for(int y = 0; y < image.getHeight(); y++){
             for(int x = 0; x < image.getWidth(); x++){
                 if(dataIndex >= secretData.length) return;
                 RGB rgb = new RGB(image.getRGB(x, y));
-                for(int i = 0; i < 3; i++){
+                for(int i = 0; i < 3; i++){ //遍历R->G->B
                     if(dataIndex >= secretData.length) break;
                     int bit = (secretData[dataIndex] >> (7 - bitIndex)) & 1;
                     rgb.setRGB(bit, i);
@@ -111,7 +116,7 @@ public class DigitalWatermarking {
     }
 
 
-
+    //生成水印头：4位长度+1位类型+数据
     private static byte[] generateHeader(Object obj) throws IOException {
         byte[] type;
         byte[] data;
