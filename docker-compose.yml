@@ -1,6 +1,6 @@
 services:
   watermark:
-    bulid:
+    build:
       context: .
       dockerfile: Dockerfile
     container_name: watermark-server
