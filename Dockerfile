@@ -16,7 +16,7 @@ RUN wget https://download.java.net/java/GA/jdk17.0.2/dfd4a8d0985749f896bed50d713
     ln -s /usr/local/jdk-17.* /usr/local/jdk
 
 ENV JAVA_HOME=/usr/local/jdk
-ENV PATH=$JAVA_HOME$/bin:$PATH
+ENV PATH=$JAVA_HOME/bin:$PATH
 ENV LANG=en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8
 
