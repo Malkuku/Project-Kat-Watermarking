@@ -6,7 +6,7 @@ RUN rm -rf /etc/yum.repos.d/* && \
     yum clean all && \
     yum makecache
 
-RUN yum install -y tar glibc-common && \
+RUN yum install -y wget tar glibc-common && \
 yum clean all && \
 localedef -i en_US -f UTF-8 en_US.UTF-8
 
