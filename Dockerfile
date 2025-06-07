@@ -22,7 +22,7 @@ ENV LC_ALL=en_US.UTF-8
 
 RUN mkdir -p /watermark/{logs}
 
-COPY kat-watermarking.jar /watermark/
+COPY ./watermark/kat-watermarking.jar /watermark/
 
 WORKDIR /watermark
 
